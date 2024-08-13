@@ -1,3 +1,7 @@
+# batchtools registries
+registries/*
+*.rds
+
 # History files
 .Rhistory
 .Rapp.history
