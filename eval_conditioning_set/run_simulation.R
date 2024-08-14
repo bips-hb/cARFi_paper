@@ -72,8 +72,8 @@ jobPars$algo.pars <- lapply(jobPars$algo.pars, function(x) { x[["feat_cond"]] <-
 jobPars <- flatten(jobPars)
 jobPars <- jobPars[rep(seq_len(nrow(jobPars)), unlist(lapply(res$result, nrow))), ]
 result <- cbind(jobPars, rbindlist(res$result))
-levels <- c("PFI", "SAGE", "CARFFI", "CARFFI (x1)", "CARFFI (x2)", "CARFFI (x3)", 
-            "CARFFI (x4)", "CARFFI (x5)", "CARFFI (x1, x2)", "CARFFI (x2, x4)", 
+levels <- c("PFI", "SAGE", "cARFi", "cARFi (x1)", "cARFi (x2)", "cARFi (x3)", 
+            "cARFi (x4)", "cARFi (x5)", "cARFi (x1, x2)", "cARFi (x2, x4)", 
             "CPI (Gauss.)", "csPFI", "LOCO")
 result$method <- factor(result$method, levels = levels)
 
@@ -83,17 +83,19 @@ library(ggsci)
 library(cowplot)
 
 # Prepare data
-result <- result[, .(mean = mean(value), sd = sd(value)),
+result <- result[, .(mean = mean(value), q1 = quantile(value, 0.25), q3 = quantile(value, 0.75)),
                  by = c("n", "learner", "method", "Variable")]
 result$group <- factor(
   ifelse(result$method %in% c("PFI", "SAGE"), "Marginal",
-         ifelse(result$method %in% c("CARFFI", "CPI (Gauss.)", "csPFI", "LOCO"), 
+         ifelse(result$method %in% c("cARFi", "CPI (Gauss.)", "csPFI", "LOCO"), 
                 "Conditional on all", "Conditional on subset")),
   levels = c("Marginal", "Conditional on subset", "Conditional on all"))
+result$learner <- factor(result$learner, levels = c("regression", "ranger"),
+                         labels = c("Linear model", "Random forest"))
 
 # Remove duplicates
-result <- result[!((method == "CARFFI (x1, x2)" & Variable %in% c("x1", "x2")) |
-                    method == "CARFFI (x2, x4)" & Variable %in% c("x2", "x4"))]
+result <- result[!((method == "cARFi (x1, x2)" & Variable %in% c("x1", "x2")) |
+                    method == "cARFi (x2, x4)" & Variable %in% c("x2", "x4"))]
 
 # Generate plots
 plots <- lapply(levels(result$group), function(grp) {
@@ -105,14 +107,16 @@ plots <- lapply(levels(result$group), function(grp) {
   
   p <- ggplot(result[group == grp]) +
     geom_bar(aes(x = Variable, y = mean, fill = method), stat = "identity", position = position_dodge(0.9)) +
-    geom_errorbar(aes(x = Variable, ymin = mean - sd, ymax = mean + sd, group = method), position = position_dodge(0.9), width = 0.2) +
+    geom_errorbar(aes(x = Variable, ymin = q1, ymax = q3, group = method), position = position_dodge(0.9), width = 0.2) +
     geom_hline(yintercept = 0, linetype = "dashed") +
     facet_grid(rows = vars(learner), cols = vars(group), scales = "free_y") + 
     scale_fill_manual(values = col_pal) +
-    theme(legend.position = "top", plot.margin = ggplot2::unit(c(0, 0, 0, 0), "cm")) +
+    theme(legend.position = "top", 
+          plot.margin = ggplot2::margin(0, 0, 0, r = 5, unit = "pt"),
+          legend.margin = ggplot2::margin(0, 0, 0, 0, unit = "pt")) +
     labs(fill = NULL, 
-         y = if (grp == "Marginal") "Importance" else "", 
-         x = "Variable")
+         y = if (grp == "Marginal") "Importance" else NULL, 
+         x = NULL)
   
   # Remove facet labels if not last plot
   if (grp != "Conditional on all") {
@@ -125,7 +129,17 @@ p <- plot_grid(plotlist = plots, nrow = 1, rel_widths = c(1, 2, 2), align = "h")
 
 # Save plots
 if (!dir.exists(here("figures"))) dir.create(here("figures"))
-ggsave(here("figures/fig_conditioning_set.pdf"), height = 5, width = 12)
+ggsave(here("figures/plot_conditioning_set.pdf"), height = 5, width = 12)
 
+
+# Create final figure (i.e, add tikz plot)
+library(tinytex)
+if (!is_tinytex()) tinytex::install_tinytex() # install tinytex if not already installed
+tlmgr_install(pkgs = c("tikz", "bm", "xcolor"))
+
+tinytex::pdflatex(
+  file = here("eval_conditioning_set/create_fig.tex"),
+  pdf_file = here("figures/fig_conditioning_set.pdf")
+)
 
 

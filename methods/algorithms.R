@@ -4,7 +4,7 @@
 
 # CPI ARF ----------------------------------------------------------------------
 cpi_arf_wrapper <- function(data, job, instance, learner, num_cpus = 1,
-                            feat_cond = NULL, repls = 1, min_node_size = NULL,
+                            feat_cond = list(NULL), repls = 1, min_node_size = NULL,
                             forde_args = list(finite_bounds = "local", epsilon = 1e-15),
                             arf_args = list(parallel = TRUE, min_node_size = 20L, replace = FALSE),
                             use_rmse = FALSE,
@@ -58,7 +58,7 @@ cpi_arf_wrapper <- function(data, job, instance, learner, num_cpus = 1,
       rank = rank(-CPI_r$CPI),
       rejected = (ifelse(CPI_r$p.value == 0, 1, CPI_r$p.value) < 0.05) * 1,
       top_p = rank(-CPI_r$CPI) <= length(CPI_r$Variable) / 2,
-      method = if (is.null(cond)) "CARFFI" else paste0("CARFFI (", paste(cond, collapse = ", "), ")"),
+      method = if (is.null(cond)) "cARFi" else paste0("cARFi (", paste(cond, collapse = ", "), ")"),
       time = time
     )
   })
