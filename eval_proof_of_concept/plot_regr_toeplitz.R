@@ -3,6 +3,7 @@ library(ggplot2)
 library(ggsci)
 library(envalysis)
 library(ggpubr)
+library(here)
 
 # Set theme
 theme_set(
@@ -15,11 +16,7 @@ theme_set(
 
 reg_name <- "Sim_regr_toeplitz"
 # Plots ------------------------------------------------------------------------
-#res <- readRDS("/opt/projects/carfi/sim_regr_toeplitz.rds")
-res <- readRDS(here::here("eval_proof_of_concept/Sim_regr_toeplitz.rds"))
-
-# Create appendix folder
-if (!dir.exists("figures/appendix")) dir.create("figures/appendix")
+res <- readRDS(here("eval_proof_of_concept/Sim_regr_toeplitz.rds"))
 
 # Boxplots of CPI values per variable
 plots_cpi <- lapply(unique(res$min_node_size), function(m) {
@@ -71,8 +68,8 @@ library(cowplot)
 lapply(as.character(unique(res$min_node_size)), function(m) {
   p <- plot_grid(plots_cpi[[m]], plots_tstat[[m]], plots_power[[m]],
                  labels = "AUTO", ncol = 1)
-  ggplot2::ggsave(paste0("figures/appendix/fig_", reg_name, "_", m, ".pdf"), plot = p, width = 10, height = 13)
-  #ggplot2::ggsave(paste0("figures/appendix/fig_", reg_name, "_", m, ".png"), plot = p, width = 10, height = 13, dpi = 300)
+  ggplot2::ggsave(here(paste0("figures/appendix/fig_", reg_name, "_", m, ".pdf")), 
+                  plot = p, width = 10, height = 13)
 })
 
 # Plot type I error and power over min_node_size
@@ -90,8 +87,8 @@ ggplot(res_mn, aes(x = min_node_size, y = power, col = Learner, shape = Learner,
   #scale_y_continuous(breaks = c(0, .05, .25, .5, .75, 1), limits = c(0, 1)) +
   xlab("Leaf size") + ylab("Rejection proportion")
 
-ggplot2::ggsave(paste0("figures/appendix/fig_", reg_name, "_", "type1", ".pdf"), width = 10, height = 8)
-#ggplot2::ggsave(paste0("figures/fig_", reg_name, "_", "type1", ".png"), width = 10, height = 8, dpi = 300)
+ggplot2::ggsave(here(paste0("figures/appendix/fig_", reg_name, "_", "type1", ".pdf")), 
+                width = 10, height = 8)
 
 # Plot for main paper
 ggplot(res_mean[min_node_size == 20, ], aes(x = Variable, y = power, col = Learner, shape = Learner)) +
@@ -103,4 +100,4 @@ ggplot(res_mean[min_node_size == 20, ], aes(x = Variable, y = power, col = Learn
   xlab("Effect size") + ylab("Rejection proportion") + 
   theme_publish(base_size = 13, base_family = "serif") +
   theme(legend.position = "top", panel.grid.major.y = element_line("lightgray"))
-ggsave("figures/fig_power.pdf", width = 8, height = 4)
+ggsave(here("figures/fig_power.pdf"), width = 8, height = 4)

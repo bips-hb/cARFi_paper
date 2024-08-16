@@ -1,3 +1,17 @@
+################################################################################
+#                 Simulation: Proof of Concept
+#
+# Settings:
+#     - Number of simulation runs: 10000
+#     - Number of samples: 1000
+#     - Number of features: 10 (with a Toeplitz covariance matrix with base .5)
+#     - Linear and nonlinear data
+#     - Algorithms: cARFi
+#     - Loss function: mean squared error (MSE)
+#     - Learner: random forest, linear model, neural network, and support vector machine
+#     - cARFi: Minimum node size of c(2, 5, 10, 20, 50, 100)
+#     - cARFi: Number of samples R = 1
+################################################################################
 library(data.table)
 library(batchtools)
 library(ggplot2)
@@ -6,7 +20,7 @@ library(ggsci)
 set.seed(42)
 
 # Simulation parameters --------------------------------------------------------
-num_replicates <- 2 #10000 
+num_replicates <- 10000 
 n <- 1000
 p <- 10
 cov_base <- .5 # Toeplitz with base .5 covariance
@@ -30,7 +44,7 @@ makeExperimentRegistry(file.dir = reg_dir,
                        conf.file = here::here("eval_proof_of_concept", "config.R"),
                        packages = c("mlr3verse", "cpi", "mvtnorm", "arf", "foreach"),
                        source = c(here::here("eval_proof_of_concept", "problems.R"),
-                                  here::here("cpi_arf.R")))
+                                  here::here("cARFi.R")))
 
 # Problems ---------------------------------------------------------------------
 addProblem(name = "linear", fun = linear_data, seed = 43)
@@ -49,7 +63,7 @@ cpi_fun <- function(data, job, instance,
     lrn(learner_name)
   )
 
-  as.list(cpi_arf(
+  as.list(carfi(
     task = instance, learner = learner,
     repls = cpi_replicates,
     arf_args = list(max.depth = 0, parallel = FALSE, replace = FALSE, min_node_size = min_node_size),
@@ -79,7 +93,7 @@ algo_design <- list(cpi = expand.grid(
 )
 addExperiments(prob_design, algo_design, repls = num_replicates)
 summarizeExperiments()
-#testJob(1)
+testJob(1)
 
 # Submit -----------------------------------------------------------------------
 if (grepl("^blog[12]$", system("hostname", intern = TRUE))) {
@@ -120,7 +134,7 @@ res[, Problem := factor(problem,
                         levels = c("linear", "nonlinear"),
                         labels = c("Linear data", "Nonlinear data"))]
 res[, Statistic := statistic]
-saveRDS(res, paste0("eval_proof_of_concept/", reg_name, ".rds"))
+saveRDS(res, here::here(paste0("eval_proof_of_concept/", reg_name, ".rds")))
 
 
 # Create figures ---------------------------------------------------------------

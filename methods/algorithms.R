@@ -2,14 +2,14 @@
 #                             Algorithms
 ################################################################################
 
-# CPI ARF ----------------------------------------------------------------------
-cpi_arf_wrapper <- function(data, job, instance, learner, num_cpus = 1,
-                            feat_cond = list(NULL), repls = 1, min_node_size = NULL,
-                            forde_args = list(finite_bounds = "local", epsilon = 1e-15),
-                            arf_args = list(parallel = TRUE, min_node_size = 20L, replace = FALSE),
-                            use_rmse = FALSE,
-                            ...) {
-  source(here("cpi_arf.R"))
+# cARFi ----------------------------------------------------------------------
+carfi_wrapper <- function(data, job, instance, learner, num_cpus = 1,
+                          feat_cond = list(NULL), repls = 1, min_node_size = NULL,
+                          forde_args = list(finite_bounds = "local", epsilon = 1e-15),
+                          arf_args = list(parallel = TRUE, min_node_size = 20L, replace = FALSE),
+                          use_rmse = FALSE,
+                          ...) {
+  source(here("cARFi.R"))
   
   # Set min_node_size if provided
   if (!is.null(min_node_size)) arf_args$min_node_size <- min_node_size
@@ -37,28 +37,27 @@ cpi_arf_wrapper <- function(data, job, instance, learner, num_cpus = 1,
     
     # Apply CPI ARF
     time <- apply_fun({
-      CPI_r <- cpi_arf(task = my_mlr3$task,
-                       arf_obj = arf,
-                       arf_forde = psi,
-                       repls = repls,
-                       learner = my_mlr3$learner,
-                       resampling = rsmp("holdout"),
-                       log = FALSE,
-                       feat_cond = cond,
-                       feat_interest = feat_interest,
-                       test = "t")
+      imp <- carfi(task = my_mlr3$task,
+                   arf_obj = arf,
+                   arf_forde = psi,
+                   repls = repls,
+                   learner = my_mlr3$learner,
+                   resampling = rsmp("holdout"),
+                   log = FALSE,
+                   feat_cond = cond,
+                   feat_interest = feat_interest,
+                   test = "t")
     })
     
     # Return result
     data.frame(
-      Variable = CPI_r$Variable,
-      value = CPI_r$CPI,
-      SE = CPI_r$SE,
-      p.value = ifelse(CPI_r$p.value == 0, 1, CPI_r$p.value),
-      rank = rank(-CPI_r$CPI),
-      rejected = (ifelse(CPI_r$p.value == 0, 1, CPI_r$p.value) < 0.05) * 1,
-      top_p = rank(-CPI_r$CPI) <= length(CPI_r$Variable) / 2,
-      method = if (is.null(cond)) "cARFi" else paste0("cARFi (", paste(cond, collapse = ", "), ")"),
+      Variable = toUpper(imp$Variable),
+      value = imp$CPI,
+      SE = imp$SE,
+      p.value = ifelse(imp$p.value == 0, 1, imp$p.value),
+      rank = rank(-imp$CPI),
+      rejected = (ifelse(imp$p.value == 0, 1, imp$p.value) < 0.05) * 1,
+      method = if (is.null(cond)) "cARFi" else paste0("cARFi (", paste(toUpper(cond), collapse = ", "), ")"),
       time = time
     )
   })
@@ -90,13 +89,12 @@ cpi_seq <- function(data, job, instance, learner, num_cpus = 1, repls = 1, use_r
   
   
   data.frame(
-    Variable = CPI_r$Variable,
+    Variable = toUpper(CPI_r$Variable),
     value = CPI_r$CPI,
     SE = CPI_r$SE,
     p.value = ifelse(CPI_r$p.value == 0, 1, CPI_r$p.value),
     rank = rank(-CPI_r$CPI),
     rejected = (ifelse(CPI_r$p.value == 0, 1, CPI_r$p.value) < 0.05) * 1,
-    top_p = rank(-CPI_r$CPI) <= length(CPI_r$Variable) / 2,
     method = "CPI (Seq.)",
     time = time
   )
@@ -127,13 +125,12 @@ cpi_gauss <- function(data, job, instance, learner, num_cpus = 1, repls = 1, use
   
   # Return result
   data.frame(
-    Variable = CPI_r$Group,
+    Variable = toUpper(CPI_r$Group),
     value = CPI_r$CPI,
     SE = CPI_r$SE,
     p.value = ifelse(CPI_r$p.value == 0, 1, CPI_r$p.value),
     rank = rank(-CPI_r$CPI),
     rejected = (ifelse(CPI_r$p.value == 0, 1, CPI_r$p.value) < 0.05) * 1,
-    top_p = rank(-CPI_r$CPI) <= length(CPI_r$Variable) / 2,
     method = "CPI (Gauss.)",
     time = time
   )
@@ -163,7 +160,7 @@ loco <- function(data,job,  instance, learner, num_cpus = 1, use_rmse = FALSE, .
       red_pred <- red_model$learner$predict_newdata(newdata = test_data[,-i])                 
       red_loss <- red_pred$score(measures = red_model$measure)
       delta <- as.numeric(red_loss - full_loss)
-      data.frame(Variable =  colnames(instance)[i], value = delta) # CAUTION -- might double check reordering in mlr3 of feature names if not X1--X2--X3 order
+      data.frame(Variable =  toUpper(colnames(instance)[i]), value = delta) # CAUTION -- might double check reordering in mlr3 of feature names if not X1--X2--X3 order
     })
     res = do.call("rbind", args = loco_res)
   })
@@ -174,7 +171,6 @@ loco <- function(data,job,  instance, learner, num_cpus = 1, use_rmse = FALSE, .
     p.value = NA,
     rank = rank(-res$value),
     rejected = NA,
-    top_p = rank(-res$value) <= length(res$Variable) / 2,
     method = "LOCO",
     time = time
   )
@@ -208,14 +204,13 @@ cond_subgroup <- function(data, job, instance, learner, num_cpus = 1, use_rmse =
   })
   
   data.frame(
-    Variable = res$feature,
+    Variable = toUpper(res$feature),
     value = res$importance,
     SE = NA,
     p.value = NA,
     rank = rank(-res$importance),
     rejected = NA,
-    top_p = rank(-res$importance) <= length(res$feature) / 2,
-    method = "csPFI",
+    method = "CS",
     time = time
   )
 }
@@ -240,13 +235,12 @@ pfi <- function(data,job,  instance, learner,  num_cpus = 1, use_rmse = FALSE, .
   
   
   data.frame(
-    Variable = CPI_r$Variable,
+    Variable = toUpper(CPI_r$Variable),
     value = CPI_r$CPI,
     SE = NA, # not proven yet
     p.value = NA, # not proven yet
     rank = rank(-CPI_r$CPI),
     rejected = NA, # <- not proven yet 
-    top_p = rank(-CPI_r$CPI) <= length(CPI_r$Variable) / 2,
     method = "PFI",
     time = time
   )
@@ -269,13 +263,12 @@ run_sage <- function(data, job, instance, learner, num_cpus = 1, use_rmse = FALS
   })
   
   data.frame(
-    Variable = names(res),
+    Variable = toUpper(names(res)),
     value = as.numeric(res),
     SE = NA,
     p.value = NA,
     rank = rank(-as.numeric(res)),
     rejected = NA,
-    top_p = rank(-as.numeric(res)) <= length(res) / 2,
     method = "SAGE",
     time = time
   )
@@ -338,4 +331,9 @@ make_mlr3 <- function(instance, learner, num_threads = 1, dummy_encoding = FALSE
     "loss_subgroup" = Metrics::rmse,
     "groups" = grps
   )
+}
+
+toUpper <- function(x) {
+  paste(toupper(substring(x, 1, 1)), substring(x, 2),
+        sep = "", collapse = NULL)
 }

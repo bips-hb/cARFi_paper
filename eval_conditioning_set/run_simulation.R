@@ -1,3 +1,21 @@
+################################################################################
+#                 Simulation: Impact of the Conditioning Set
+#
+# This simulation is based on the DAG described in König et al. (2021) with an
+# additional variable X5 which is highly correlated with X4 but without a
+# direct effect on the outcome.
+#
+# Settings:
+#     - Number of simulation runs: 50
+#     - Number of samples: 3000
+#     - Algorithms: PFI, SAGE, cARFi under different conditioning sets, CPI
+#       (Gaussian), LOCO, and CS  
+#     - Loss function: mean squared error (MSE)
+#     - Learner: random forest (ranger) and linear model (regression)
+#     - cARFi: Minimum node size of 20
+#     - cARFi: Number of samples R = 1
+################################################################################
+
 library(batchtools)
 library(here)
 library(data.table)
@@ -27,7 +45,7 @@ addProblem(name = "Conditioning_set", fun = problem_koenig, seed = 1)
 # Algorithms -------------------------------------------------------------------
 source(here("methods/algorithms.R"))
 
-addAlgorithm(name = "cpi_arf", fun = cpi_arf_wrapper)
+addAlgorithm(name = "carfi", fun = carfi_wrapper)
 addAlgorithm(name = "cpi_gauss", fun = cpi_gauss)
 addAlgorithm(name = "loco", fun = loco)
 addAlgorithm(name = "pfi", fun = pfi)
@@ -35,7 +53,7 @@ addAlgorithm(name = "sage", fun = run_sage)
 addAlgorithm(name = "cs", fun = cond_subgroup)
 
 # Global Parameters ------------------------------------------------------------
-carfi_feat_conds <- list(list(NULL, "x1", "x2", "x3", "x4", "x5", c("x1", "x2")))
+carfi_feat_conds <- list(list(NULL, "x1", "x2", "x3", "x5", c("x1", "x2"), c("x3", "x4")))
 learners <- c("regression", "ranger")
 
 # Experiments ------------------------------------------------------------------
@@ -43,7 +61,7 @@ learners <- c("regression", "ranger")
 # Define problem and algorithm design
 prob_designs <- list(Conditioning_set = expand.grid(n = c(3000)))
 algo_designs <- list(
-  cpi_arf = expand.grid(learner = learners, feat_cond = carfi_feat_conds),
+  carfi = expand.grid(learner = learners, feat_cond = carfi_feat_conds),
   cpi_gauss = expand.grid(learner = learners),
   loco = expand.grid(learner = learners),
   pfi = expand.grid(learner = learners),
@@ -72,10 +90,11 @@ jobPars$algo.pars <- lapply(jobPars$algo.pars, function(x) { x[["feat_cond"]] <-
 jobPars <- flatten(jobPars)
 jobPars <- jobPars[rep(seq_len(nrow(jobPars)), unlist(lapply(res$result, nrow))), ]
 result <- cbind(jobPars, rbindlist(res$result))
-levels <- c("PFI", "SAGE", "cARFi", "cARFi (x1)", "cARFi (x2)", "cARFi (x3)", 
-            "cARFi (x4)", "cARFi (x5)", "cARFi (x1, x2)", "cARFi (x2, x4)", 
-            "CPI (Gauss.)", "csPFI", "LOCO")
+levels <- c("PFI", "SAGE", "cARFi", "cARFi (X1)", "cARFi (X2)", "cARFi (X3)", 
+            "cARFi (X5)", "cARFi (X1, X2)", "cARFi (X3, X4)", 
+            "CPI (Gauss.)", "CS", "LOCO")
 result$method <- factor(result$method, levels = levels)
+result$Variable <- factor(result$Variable, levels = paste0("X", 1:5))
 
 # Create plots -----------------------------------------------------------------
 library(ggplot2)
@@ -87,15 +106,14 @@ result <- result[, .(mean = mean(value), q1 = quantile(value, 0.25), q3 = quanti
                  by = c("n", "learner", "method", "Variable")]
 result$group <- factor(
   ifelse(result$method %in% c("PFI", "SAGE"), "Marginal",
-         ifelse(result$method %in% c("cARFi", "CPI (Gauss.)", "csPFI", "LOCO"), 
+         ifelse(result$method %in% c("cARFi", "CPI (Gauss.)", "CS", "LOCO"), 
                 "Conditional on all", "Conditional on subset")),
   levels = c("Marginal", "Conditional on subset", "Conditional on all"))
 result$learner <- factor(result$learner, levels = c("regression", "ranger"),
                          labels = c("Linear model", "Random forest"))
 
 # Remove duplicates
-result <- result[!((method == "cARFi (x1, x2)" & Variable %in% c("x1", "x2")) |
-                    method == "cARFi (x2, x4)" & Variable %in% c("x2", "x4"))]
+result <- result[!(method == "cARFi (X1, X2)" & Variable %in% c("X1", "X2"))]
 
 # Generate plots
 plots <- lapply(levels(result$group), function(grp) {
@@ -128,8 +146,7 @@ plots <- lapply(levels(result$group), function(grp) {
 p <- plot_grid(plotlist = plots, nrow = 1, rel_widths = c(1, 2, 2), align = "h")
 
 # Save plots
-if (!dir.exists(here("figures"))) dir.create(here("figures"))
-ggsave(here("figures/plot_conditioning_set.pdf"), height = 5, width = 12)
+ggsave(here("figures/tmp_plots/plot_conditioning_set.pdf"), height = 5, width = 12)
 
 
 # Create final figure (i.e, add tikz plot)

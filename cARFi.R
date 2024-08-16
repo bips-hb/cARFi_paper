@@ -8,7 +8,7 @@ library(data.table)
 
 
 
-#' Conditional Feature Importance
+#' Conditional ARF Feature Importance
 #'
 #' @param task An mlr3 task.
 #' @param learner An mlr3 learner.
@@ -27,22 +27,22 @@ library(data.table)
 #'
 #' @example
 #' library(mlr3)
-#' cpi_arf(
+#' carfi(
 #'   task = tsk("mtcars"),
 #'   learner = lrn("regr.ranger"),
 #'   forde_args = list(finite_bounds = FALSE)
 #' )
-cpi_arf <- function(task, learner,
-                    resampling = rsmp("holdout"),
-                    repls = 1,
-                    arf_args = list(),
-                    forde_args = list(),
-                    feat_interest = NULL,
-                    feat_cond = NULL,
-                    vectorize = TRUE,
-                    arf_obj = NULL,
-                    arf_forde = NULL,
-                    ...) {
+carfi <- function(task, learner,
+                  resampling = rsmp("holdout"),
+                  repls = 1,
+                  arf_args = list(),
+                  forde_args = list(),
+                  feat_interest = NULL,
+                  feat_cond = NULL,
+                  vectorize = TRUE,
+                  arf_obj = NULL,
+                  arf_forde = NULL,
+                  ...) {
   # Data
   x <- task$data(cols = task$feature_names)
   

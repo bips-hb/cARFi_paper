@@ -1,3 +1,20 @@
+################################################################################
+#                        Simulation: Mixed data
+#
+# This simulation is based on the DAG described in Blesch et al. (2021) with 
+# only continuous variables and and a setting where X1 and X3 are
+# categorical variables with 10 levels each.
+#
+# Settings:
+#     - Number of simulation runs: 500
+#     - Number of samples: (inceasing sample sizes)
+#     - Algorithms: cARFi, CPI (Gaussian) and CPU (Sequential)  
+#     - Loss function: mean squared error (MSE)
+#     - Learner: random forest (ranger)
+#     - Number of CPUs: 5
+#     - cARFi: Minimum node size of 20
+#     - cARFi: Number of samples R = 1 and R = 20
+################################################################################
 library(batchtools)
 library(here)
 library(data.table)
@@ -28,7 +45,7 @@ addProblem(name = "DAG_Blesch_cont", fun = problem_blesch, seed = 2)
 # Algorithms -------------------------------------------------------------------
 source(here("methods/algorithms.R"))
 
-addAlgorithm(name = "cpi_arf", fun = cpi_arf_wrapper)
+addAlgorithm(name = "carfi", fun = carfi_wrapper)
 addAlgorithm(name = "cpi_gauss", fun = cpi_gauss)
 addAlgorithm(name = "cpi_seq", fun = cpi_seq)
 
@@ -52,7 +69,7 @@ DAG_Blesch_mixed = expand.grid(
 
 # Algorithm design
 algo_design_blesch <- list(
-  cpi_arf = expand.grid(learner = "ranger", repls = c(1, 20), num_cpus = num_cpus),
+  carfi = expand.grid(learner = "ranger", repls = c(1, 20), num_cpus = num_cpus),
   cpi_seq = expand.grid(learner = "ranger", repls = c(1, 20), num_cpus = num_cpus),
   cpi_gauss = expand.grid(learner = "ranger", repls = c(1, 20), num_cpus = num_cpus)
 )
@@ -62,7 +79,7 @@ algo_design_blesch <- list(
 addExperiments(
   list(DAG_Blesch_cont = DAG_Blesch_cont, DAG_Blesch_mixed = DAG_Blesch_mixed), 
   algo_design_blesch, 
-  repls = 5
+  repls = 2
 )
 summarizeExperiments()
 
@@ -124,8 +141,8 @@ p1_legend <- get_legend(
     guides(linetype = guide_legend(), shape = guide_legend(override.aes = list(size = 3)))
 )
 
-ggsave(here("figures/plot_mixed_data.pdf"), plot = p1 , height = 4, width = 5)
-ggsave(here("figures/legend_mixed_data.pdf"), plot = as_ggplot(p1_legend), 
+ggsave(here("figures/tmp_plots/plot_mixed_data.pdf"), plot = p1 , height = 4, width = 5)
+ggsave(here("figures/tmp_plots/legend_mixed_data.pdf"), plot = as_ggplot(p1_legend), 
        height = 2, width = 2)
 
 
@@ -143,7 +160,7 @@ p2 <- ggplot(res[problem == "DAG_Blesch_cont", ]) +
   labs(linetype = "Method", color = "Variable", shape = "Method", x = "Sample size",
        y = "Rejection proportion") +
   guides(color = "none", shape = guide_legend(override.aes = list(size = 3)))
-ggsave(here("figures/plot_mixed_data_appendix.pdf"), plot = p2, 
+ggsave(here("figures/tmp_plots/plot_mixed_data_cont.pdf"), plot = p2, 
        height = 5, width = 10)
 
 # Time plots
@@ -166,11 +183,8 @@ p_time <- ggplot(res_time) +
         panel.grid.major = element_line(colour = "lightgray")) +
   scale_x_log10() +
   labs(y = "Time in sec. (mean)", color = "Method", x = "Sample size")
-ggsave(here("figures/fig_time_appendix.pdf"),
+ggsave(here("figures/appendix/fig_time_appendix.pdf"),
        height = 6, width = 10)
-
-
-
 
 # Create final figures (i.e, add tikz plot and legend together)
 library(tinytex)
@@ -186,7 +200,7 @@ tinytex::pdflatex(
 # Create Appendix figure for continuous data
 tinytex::pdflatex(
   file = here("eval_mixed_data/create_fig_cont.tex"),
-  pdf_file = here("figures/fig_mixed_data_appendix.pdf")
+  pdf_file = here("figures/appendix/fig_mixed_data_appendix.pdf")
 )
 
 

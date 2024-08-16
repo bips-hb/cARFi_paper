@@ -1,3 +1,14 @@
+################################################################################
+#                   Simulation: Bike-Sharing Dataset
+# 
+# Settings:
+#     - Number of simulation runs: 50
+#     - Algorithms: PFI and cARFi
+#     - Loss function: root mean squared error (RMSE)
+#     - Learner: random forest (ranger)
+#     - cARFi: Minimum node size of 20
+#     - cARFi: Number of samples R = 5
+################################################################################
 library(batchtools)
 library(here)
 library(data.table)
@@ -28,7 +39,7 @@ addProblem(name = "Bike", fun = problem_bike, seed = 1)
 # Algorithms -----------------------------------------------------------
 source(here("methods/algorithms.R"))
 
-addAlgorithm(name = "cpi_arf", fun = cpi_arf_wrapper)
+addAlgorithm(name = "carfi", fun = carfi_wrapper)
 addAlgorithm(name = "pfi", fun = pfi)
 
 # Global Parameters ------------------------------------------------------------
@@ -47,8 +58,8 @@ feat_cond <- list(list(
 
 # Experiments -----------------------------------------------------------
 algo_design <- list(
-  cpi_arf = expand.grid(learner ="ranger", feat_cond = feat_cond,
-                        use_rsme = TRUE, repls = 5, num_cpus = num_cpus),
+  carfi = expand.grid(learner ="ranger", feat_cond = feat_cond,
+                      use_rsme = TRUE, repls = 5, num_cpus = num_cpus),
   pfi = expand.grid(learner = "ranger", num_cpus = num_cpus,
                     use_rsme  = TRUE)
 )
@@ -78,7 +89,7 @@ jobPars <- jobPars[rep(seq_len(nrow(jobPars)), unlist(lapply(res$result, nrow)))
 result <- cbind(jobPars, rbindlist(res$result))
 result$feat_cond <- gsub(".*\\((.*)\\).*|.*", "\\1", result$method)
 result$Variable <- factor(result$Variable, 
-                          levels = c("hr", "temp", "hum", "season", "workingday"),
+                          levels = c("Hr", "Temp", "Hum", "Season", "Workingday"),
                           labels =  c("Hour\n ", "Temp.", "Humidity", "Season", "Workday"))
 
 
@@ -90,7 +101,7 @@ library(cowplot)
 # Show only on all and on nothing
 res1 <- result[feat_cond == ""]
 res1$algorithm <- factor(res1$algorithm, 
-                         levels = c("pfi", "cpi_arf"), 
+                         levels = c("pfi", "carfi"), 
                          labels = c("PFI", "cARFi (all)"))
 res1 <- res1[, .(mean = mean(value), q1 = quantile(value, 0.05), q3 = quantile(value, 0.95)), 
              by = c("Variable", "algorithm")]
@@ -108,10 +119,10 @@ p1 <- ggplot(res1, aes(x = Variable, y = mean, fill = algorithm)) +
 
 
 # Hour plot
-res_hr <- result[Variable == "Hour\n " & feat_cond %in% c("", "workingday", "temp", "temp, season")]
+res_hr <- result[Variable == "Hour\n " & feat_cond %in% c("", "Workingday", "Temp", "Temp, Season")]
 res_hr$method <- factor(res_hr$method,
-                        levels = c("PFI", "cARFi (workingday)", "cARFi (temp)", "cARFi (temp, season)", "cARFi"),
-                        labels = c("PFI\n(none)", "Workday", "Temp.", "Temp.\nSeason", "cARFi\n(all)"))
+                        levels = c("PFI", "cARFi (Workingday)", "cARFi (Temp)", "cARFi (Temp, Season)", "cARFi"),
+                        labels = c("None\n(PFI)", "Workday", "Temp.", "Temp.\nSeason", "All"))
 res_hr$Variable <- "Hour of the day"
 p2 <- ggplot(res_hr) +
   geom_boxplot(aes(x = method, y = value), fill = c("#E64B35FF", "darkgray", "darkgray", "darkgray", "#4DBBD5FF")) +
@@ -122,10 +133,10 @@ p2 <- ggplot(res_hr) +
   labs(x = "Conditioning set", y = NULL)
   
 # Temperature plot
-res_temp <- result[Variable == "Temp." & feat_cond %in% c("", "workingday", "season", "season, hr")]
+res_temp <- result[Variable == "Temp." & feat_cond %in% c("", "Workingday", "Season", "Season, Hr")]
 res_temp$method <- factor(res_temp$method, 
-                          levels = c("PFI", "cARFi (workingday)", "cARFi (season)", "cARFi (season, hr)", "cARFi"),
-                          labels = c("PFI\n(none)", "Workday", "Season", "Season\nHour", "cARFi\n(all)"))
+                          levels = c("PFI", "cARFi (Workingday)", "cARFi (Season)", "cARFi (Season, Hr)", "cARFi"),
+                          labels = c("None\n(PFI)", "Workday", "Season", "Season\nHour", "All"))
 res_temp$Variable <- "Temperature"
 
 p3 <- ggplot(res_temp) +
@@ -138,8 +149,7 @@ p3 <- ggplot(res_temp) +
 
 
 # Combine and save plots
-p <- plot_grid(p1, p2, p3, ncol = 3, labels = c("a)", "b)", "c)"), axis = "b")
-if (!dir.exists(here("figures"))) dir.create(here("figures"))
+p <- plot_grid(p1, p2, p3, ncol = 3, labels = c("A", "B", "C"), axis = "b")
 ggsave(here("figures/fig_bike_sharing.pdf"), p, width = 14, height = 3.5)
 
 

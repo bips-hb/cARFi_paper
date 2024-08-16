@@ -24,12 +24,30 @@ if (!all(required_packages %in% rownames(utils::installed.packages()))) {
   } else {
     warning("Not all required packages are installed!")
   }
-  
-  
 } else {
+  # Check 'cpi' version
+  if (utils::installed.packages()["cpi", "Version"] < "0.1.5") {
+    res <- readline(prompt = "'cpi' package >= 0.1.5 is required. Install it? [N/Y]")
+    if (tolower(res) == "y") {
+      pak::pkg_install("bips-hb/cpi@x_tilde_list")
+    } else {
+      warning("Not all required packages are installed!")
+    }
+  }
+  
+  # Check 'arf' version
+  if (utils::installed.packages()["arf", "Version"] < "0.2.2") {
+    res <- readline(prompt = "'arf' package >= 0.2.2 is required for a fast execution. Install it? [N/Y]")
+    if (tolower(res) == "y") {
+      pak::pkg_install("bips-hb/arf")
+    } else {
+      warning("Not all required packages are installed!")
+    }
+  }
+  
   message("All required packages are installed!")
 }
-
+rm(required_packages)
 
 # Limit number of CPUs ---------------------------------------------------------
 # For e.g. XGBoost
@@ -51,3 +69,19 @@ theme_set(
   theme_publish(base_family = "serif", base_size = 15) +
   theme(panel.grid.major.y = element_line("lightgray"))
 )
+
+# Create folders for all figures -----------------------------------------------
+suppressPackageStartupMessages(library(here))
+
+# For all figures
+if (!dir.exists(here("figures"))) dir.create(here("figures"))
+
+# Create subfolder for the appendix
+if (!dir.exists(here("figures/appendix"))) dir.create(here("figures/appendix"))
+
+# Create subfolder for plots to be combined to figures
+# Create appendix folder
+if (!dir.exists(here("figures/tmp_plots"))) dir.create(here("figures/tmp_plots"))
+
+
+
