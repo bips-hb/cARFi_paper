@@ -43,9 +43,9 @@ following R packages:
 - `arf` version $\geq$ 0.2.2 installed by running `pak::pkg_install("bips-hb/arf")`
 - `seqknockoff` installed by running `pak::pkg_install("kormama1/seqknockoff")`
 - `cs` installed by running `pak::pkg_install("christophM/paper_conditional_subgroups")`
-- `cpi` versopm $\geq$ 0.1.5 installed by running `pak::pkg_install("bips-hb/cpi@x_tilde_list")`
+- `cpi` version $\geq$ 0.1.5 installed by running `pak::pkg_install("bips-hb/cpi@x_tilde_list")`
 
-#### CRAN packages (the most important ones)
+#### CRAN packages
 
 - `ggplot2`
 - `batchtools`
