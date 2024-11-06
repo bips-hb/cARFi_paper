@@ -10,8 +10,14 @@ required_packages <- c(
 )
 
 if (!all(required_packages %in% rownames(utils::installed.packages()))) {
+  
   # Load/install packages
-  res <- readline(prompt = "Not all packages are installed. Install all required packages? [N/Y]")
+  if (interactive()) {
+    res <- readline(prompt = "Not all packages are installed. Install all required packages? [N/Y]")
+  } else {
+    message("Installing required packages!")
+    res <- "Y"
+  }
   
   if (tolower(res) == "y") {
     pak::pkg_install(c(
@@ -20,14 +26,20 @@ if (!all(required_packages %in% rownames(utils::installed.packages()))) {
       "ranger", "doParallel", "microbenchmark", "pak", "dplyr",
       "bips-hb/arf", "kormama1/seqknockoff",
       "christophM/paper_conditional_subgroups",
-      "bips-hb/cpi@x_tilde_list"))
+      "bips-hb/cpi"))
   } else {
     warning("Not all required packages are installed!")
   }
 } else {
   # Check 'cpi' version
-  if (utils::installed.packages()["cpi", "Version"] < "0.1.6") {
-    res <- readline(prompt = "'cpi' package >= 0.1.6 is required. Install it? [N/Y]")
+  if (utils::installed.packages()["cpi", "Version"] < "0.1.5") {
+    if (interactive()) {
+      res <- readline(prompt = "'cpi' package >= 0.1.5 is required. Install it? [N/Y]")
+    } else {
+      message("Installing correct version of R package 'cpi >= 0.1.5'.")
+      res <- "Y"
+    }
+    
     if (tolower(res) == "y") {
       pak::pkg_install("bips-hb/cpi")
     } else {
@@ -37,7 +49,13 @@ if (!all(required_packages %in% rownames(utils::installed.packages()))) {
   
   # Check 'arf' version
   if (utils::installed.packages()["arf", "Version"] < "0.2.2") {
-    res <- readline(prompt = "'arf' package >= 0.2.2 is required for a fast execution. Install it? [N/Y]")
+    if (interactive()) {
+      res <- readline(prompt = "'arf' package >= 0.2.2 is required for a fast execution. Install it? [N/Y]")
+    } else {
+      message("Installing correct version of R package 'arf >= 0.2.2'.")
+      res <- "Y"
+    }
+    
     if (tolower(res) == "y") {
       pak::pkg_install("bips-hb/arf")
     } else {
@@ -67,7 +85,7 @@ library(envalysis)
 
 theme_set(
   theme_publish(base_family = "serif", base_size = 15) +
-  theme(panel.grid.major.y = element_line("lightgray"))
+    theme(panel.grid.major.y = element_line("lightgray"))
 )
 
 # Create folders for all figures -----------------------------------------------

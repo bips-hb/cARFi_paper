@@ -43,6 +43,12 @@ carfi <- function(task, learner,
                   arf_obj = NULL,
                   arf_forde = NULL,
                   ...) {
+  
+  # Check 'cpi' package version
+  if (utils::installed.packages()["cpi", "Version"] < "0.1.5") {
+    stop("Please update the 'cpi' package to version 0.1.5 or higher.")
+  }
+  
   # Data
   x <- task$data(cols = task$feature_names)
   
