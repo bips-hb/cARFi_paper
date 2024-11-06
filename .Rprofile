@@ -26,10 +26,10 @@ if (!all(required_packages %in% rownames(utils::installed.packages()))) {
   }
 } else {
   # Check 'cpi' version
-  if (utils::installed.packages()["cpi", "Version"] < "0.1.5") {
-    res <- readline(prompt = "'cpi' package >= 0.1.5 is required. Install it? [N/Y]")
+  if (utils::installed.packages()["cpi", "Version"] < "0.1.6") {
+    res <- readline(prompt = "'cpi' package >= 0.1.6 is required. Install it? [N/Y]")
     if (tolower(res) == "y") {
-      pak::pkg_install("bips-hb/cpi@x_tilde_list")
+      pak::pkg_install("bips-hb/cpi")
     } else {
       warning("Not all required packages are installed!")
     }
