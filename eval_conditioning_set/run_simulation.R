@@ -16,6 +16,9 @@
 #     - cARFi: Number of samples R = 1
 ################################################################################
 
+# General setup
+source(here::here("setup.R"))
+
 library(batchtools)
 library(here)
 library(data.table)

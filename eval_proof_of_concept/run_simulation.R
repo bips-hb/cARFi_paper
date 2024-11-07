@@ -12,6 +12,10 @@
 #     - cARFi: Minimum node size of c(2, 5, 10, 20, 50, 100)
 #     - cARFi: Number of samples R = 1
 ################################################################################
+
+# General setup
+source(here::here("setup.R"))
+
 library(data.table)
 library(batchtools)
 library(ggplot2)

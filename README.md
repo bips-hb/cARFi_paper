@@ -63,7 +63,7 @@ following R packages:
 - `dplyr`
 
 
-**Note:** The `.Rprofile` ensures that all necessary R packages are installed 
-before running any analysis. It also automatically sets up the environment by 
-creating required folders, setting the ggplot2 theme, and managing CPU usage 
-during simulations.
+**Note:** The script `setup.R` ensures that all necessary R packages are installed 
+and is called before any analysis is run. It also automatically sets up the 
+environment by creating required folders, setting the ggplot2 theme, and 
+managing CPU usage during simulations.

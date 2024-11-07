@@ -9,6 +9,10 @@
 #     - cARFi: Minimum node size of 20
 #     - cARFi: Number of samples R = 5
 ################################################################################
+
+# General setup
+source(here::here("setup.R"))
+
 library(batchtools)
 library(here)
 library(data.table)
