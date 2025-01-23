@@ -94,7 +94,10 @@ result <- cbind(jobPars, rbindlist(res$result))
 result$feat_cond <- gsub(".*\\((.*)\\).*|.*", "\\1", result$method)
 result$Variable <- factor(result$Variable, 
                           levels = c("Hr", "Temp", "Hum", "Season", "Workingday"),
-                          labels =  c("Hour\n ", "Temp.", "Humidity", "Season", "Workday"))
+                          labels =  c("Hour", "Temp.", "Humidity", "Season", "Workday"))
+
+# Uncomment to use the results shown in the paper
+# result <- readRDS(here("final_results/res_bike_sharing.rds"))
 
 
 # Plot the results --------------------------------------------------------
@@ -115,15 +118,16 @@ p1 <- ggplot(res1, aes(x = Variable, y = mean, fill = algorithm)) +
   geom_errorbar(aes(ymin = q1, ymax = q3), width = 0.2, position = position_dodge(0.9)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   scale_fill_npg() +
+  scale_x_discrete(guide = guide_axis(n.dodge=2)) +
   theme(legend.position = "top",
         plot.margin = ggplot2::margin(0, 0, 0, r = 5, unit = "pt"),
         legend.margin = ggplot2::margin(0, 0, 0, 0, unit = "pt"),
-        axis.title.x = element_text(margin = ggplot2::margin(b = 2, t = 1, unit = "pt"))) +
-  labs(x = "Variable", y = "Importance (RMSE)", fill = NULL)
+        axis.title.x = element_text(margin = ggplot2::margin(b = 2, t = 2, unit = "pt"))) +
+  labs(x = NULL, y = "Importance (RMSE)", fill = NULL)
 
 
 # Hour plot
-res_hr <- result[Variable == "Hour\n " & feat_cond %in% c("", "Workingday", "Temp", "Temp, Season")]
+res_hr <- result[Variable == "Hour" & feat_cond %in% c("", "Workingday", "Temp", "Temp, Season")]
 res_hr$method <- factor(res_hr$method,
                         levels = c("PFI", "cARFi (Workingday)", "cARFi (Temp)", "cARFi (Temp, Season)", "cARFi"),
                         labels = c("None\n(PFI)", "Workday", "Temp.", "Temp.\nSeason", "All"))
@@ -133,8 +137,8 @@ p2 <- ggplot(res_hr) +
   facet_grid(cols = vars(Variable)) +
   theme(plot.margin = ggplot2::margin(0, 0, 0, r = 5, unit = "pt"),
         legend.margin = ggplot2::margin(0, 0, 0, 0, unit = "pt"),
-        axis.title.x = element_text(margin = ggplot2::margin(b = 2, t = 1, unit = "pt"))) +
-  labs(x = "Conditioning set", y = NULL)
+        axis.title.x = element_text(margin = ggplot2::margin(b = 2, t = 2, unit = "pt"))) +
+  labs(x = NULL, y = NULL)
   
 # Temperature plot
 res_temp <- result[Variable == "Temp." & feat_cond %in% c("", "Workingday", "Season", "Season, Hr")]
@@ -148,12 +152,12 @@ p3 <- ggplot(res_temp) +
   facet_grid(cols = vars(Variable)) +
   theme(plot.margin = ggplot2::margin(0, 0, 0, r = 5, unit = "pt"),
         legend.margin = ggplot2::margin(0, 0, 0, 0, unit = "pt"),
-        axis.title.x = element_text(margin = ggplot2::margin(b = 2, t = 1, unit = "pt"))) +
-  labs(x = "Conditioning set", y = NULL)
+        axis.title.x = element_text(margin = ggplot2::margin(b = 2, t = 2, unit = "pt"))) +
+  labs(x = NULL, y = NULL)
 
 
 # Combine and save plots
-p <- plot_grid(p1, p2, p3, ncol = 3, labels = c("A", "B", "C"), axis = "b")
-ggsave(here("figures/fig_bike_sharing.pdf"), p, width = 14, height = 3.5)
+p <- plot_grid(p1, p2, p3, ncol = 3, labels = c("A", "B", "C"), axis = "b", label_size = 20)
+ggsave(here("figures/fig_bike_sharing.pdf"), p, width = 15, height = 3.5)
 
 

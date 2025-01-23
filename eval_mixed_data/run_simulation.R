@@ -105,6 +105,8 @@ jobPars <- jobPars[rep(seq_len(nrow(jobPars)), unlist(lapply(res$result, nrow)))
 result <- cbind(jobPars, rbindlist(res$result))
 result[is.na(repls)]$repls <- 1
 
+# To reproduce the exact results of the paper, uncomment the following line
+#result <- readRDS(here("final_results/res_mixed_data.rds"))
 
 # Create plots -----------------------------------------------------------------
 library(ggplot2)
@@ -126,8 +128,10 @@ p1 <- ggplot(res[problem == "DAG_Blesch_mixed", ]) +
   geom_point(aes(x = n, y = `Rejection Rate`, color = Variable, shape = method), alpha = 0.5) +
   facet_grid(rows = vars(repls), labeller = labeller(repls = function(x) paste0("R = ", x))) +
   scale_color_npg() +
-  theme(plot.margin = ggplot2::margin(0, 0, 0, 0, unit = "pt"),
-        axis.title.x = element_text(vjust = 3)) +
+  theme(plot.margin = margin(0,0,0,0),
+        axis.title.x = element_text(margin = margin(0,0,0,0)),
+        axis.title.y = element_text(margin = margin(0,8,0,0)),
+        axis.text.x = element_text(size = 18)) +
   geom_hline(yintercept = 0.05) +
   scale_x_log10(expand = c(0.005, 0.005)) +
   labs(linetype = "Method", color = "Variable", shape = "Method", x = "Sample size",
@@ -138,14 +142,14 @@ p1_legend <- get_legend(
   p1 +
     theme(legend.position = "right",
           legend.title = element_text(size = 20),
-          legend.text = element_text(size = 18),
-          legend.key.size = ggplot2::unit(1, 'cm'), #change legend key size
-          legend.key.height = ggplot2::unit(1, 'cm'), #change legend key height
-          legend.key.width = ggplot2::unit(1, 'cm')) +
-    guides(linetype = guide_legend(), shape = guide_legend(override.aes = list(size = 3)))
+          legend.text = element_text(size = 19),
+          legend.key.size = ggplot2::unit(1.0, 'cm'), #change legend key size
+          legend.key.height = ggplot2::unit(1.0, 'cm'), #change legend key height
+          legend.key.width = ggplot2::unit(1.0, 'cm')) +
+    guides(linetype = guide_legend(), shape = guide_legend(override.aes = list(size = 5)))
 )
 
-ggsave(here("figures/tmp_plots/plot_mixed_data.pdf"), plot = p1 , height = 4, width = 5)
+ggsave(here("figures/tmp_plots/plot_mixed_data.pdf"), plot = p1 , height = 4, width = 5.25)
 ggsave(here("figures/tmp_plots/legend_mixed_data.pdf"), plot = as_ggplot(p1_legend), 
        height = 2, width = 2)
 

@@ -99,6 +99,9 @@ levels <- c("PFI", "SAGE", "cARFi", "cARFi (X1)", "cARFi (X2)", "cARFi (X3)",
 result$method <- factor(result$method, levels = levels)
 result$Variable <- factor(result$Variable, levels = paste0("X", 1:5))
 
+# Uncomment to use the results shown in the paper
+# result <- readRDS("final_results/res_conditioning_set.rds")
+
 # Create plots -----------------------------------------------------------------
 library(ggplot2)
 library(ggsci)
@@ -118,6 +121,12 @@ result$learner <- factor(result$learner, levels = c("regression", "ranger"),
 # Remove duplicates
 result <- result[!(method == "cARFi (X1, X2)" & Variable %in% c("X1", "X2"))]
 
+# Rename the conditional sets
+result$method <- factor(result$method, levels = levels(result$method),
+                        labels = c("PFI", "SAGE", "cARFi", "X1", "X2", "X3", 
+                                   "X5", "X1, X2", "X3, X4", 
+                                   "CPI (Gauss.)", "CS", "LOCO"))
+
 # Generate plots
 plots <- lapply(levels(result$group), function(grp) {
   # Get color palette
@@ -125,6 +134,10 @@ plots <- lapply(levels(result$group), function(grp) {
                      "Marginal" = c("gray25", "gray75"),
                      "Conditional on subset" = pal_npg()(10)[1:6],
                      "Conditional on all" = pal_npg()(10)[7:10])
+  legend_title <- switch (grp,
+                          "Marginal" = "",
+                          "Conditional on subset" = "cARFi with\ncond. set",
+                          "Conditional on all" = "")
   
   p <- ggplot(result[group == grp]) +
     geom_bar(aes(x = Variable, y = mean, fill = method), stat = "identity", position = position_dodge(0.9)) +
@@ -132,9 +145,12 @@ plots <- lapply(levels(result$group), function(grp) {
     geom_hline(yintercept = 0, linetype = "dashed") +
     facet_grid(rows = vars(learner), cols = vars(group), scales = "free_y") + 
     scale_fill_manual(values = col_pal) +
+    guides(fill = guide_legend(title = legend_title, nrow = 2)) +
     theme(legend.position = "top", 
-          plot.margin = ggplot2::margin(0, 0, 0, r = 5, unit = "pt"),
-          legend.margin = ggplot2::margin(0, 0, 0, 0, unit = "pt")) +
+          legend.box.spacing = ggplot2::unit(0, "pt"),
+          legend.spacing.y = ggplot2::unit(0, 'pt'),
+          plot.margin = ggplot2::margin(0, 0, 0, r = 3, unit = "pt"),
+          legend.margin = ggplot2::margin(0, 0, 5, 0, unit = "pt")) +
     labs(fill = NULL, 
          y = if (grp == "Marginal") "Importance" else NULL, 
          x = NULL)
@@ -146,10 +162,10 @@ plots <- lapply(levels(result$group), function(grp) {
   
   p
 })
-p <- plot_grid(plotlist = plots, nrow = 1, rel_widths = c(1, 2, 2), align = "h")
+p <- plot_grid(plotlist = plots, nrow = 1, rel_widths = c(1.1, 2, 2), align = "h")
 
 # Save plots
-ggsave(here("figures/tmp_plots/plot_conditioning_set.pdf"), height = 5, width = 12)
+ggsave(here("figures/tmp_plots/plot_conditioning_set.pdf"), height = 5.5, width = 12.5)
 
 
 # Create final figure (i.e, add tikz plot)

@@ -86,8 +86,9 @@ library(ggplot2)
 library(envalysis)
 
 theme_set(
-  theme_publish(base_family = "serif", base_size = 15) +
-    theme(panel.grid.major.y = element_line("lightgray"))
+  theme_publish(base_family = "serif", base_size = 20) +
+    theme(panel.grid.major.y = element_line("lightgray"),
+          plot.margin = ggplot2::margin(b = 0))
 )
 
 # Create folders for all figures -----------------------------------------------

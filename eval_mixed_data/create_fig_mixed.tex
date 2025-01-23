@@ -15,22 +15,22 @@
 		my arrow/.style={-Triangle}
 		]
 		% Causal Structure
-		\node[scale = 1.8] at (1.25, 1.3) {\textbf{Causal structure}};
-		\node[my node, fill = x1] (X1) at (0,0) {$\bm{X_1}$\\\textbf{cat.}};
-		\node[my node, fill = x2] (X2) at (2.5,0) {$\bm{X_2}$\\\textbf{cont.}};
-		\node[my node, fill = x3] (X4) at (0,-2.5) {$\bm{X_4}$\\\textbf{cont.}};
-		\node[my node, fill = x4] (X3) at (2.5,-2.5) {$\bm{X_3}$\\\textbf{cat.}};
-		\node[my node] (Y) at (1.25,-4.5) {$\bm{Y}$};
+		\node[scale = 2.1] at (1.25, 1.3) {\textbf{Causal structure}};
+		\node[my node, fill = x1] (X1) at (0,0) {\LARGE $\bm{X_1}$\\\textbf{cat.}};
+		\node[my node, fill = x2] (X2) at (2.5,0) {\LARGE $\bm{X_2}$\\\textbf{cont.}};
+		\node[my node, fill = x3] (X4) at (0,-2.5) {\LARGE $\bm{X_4}$\\\textbf{cont.}};
+		\node[my node, fill = x4] (X3) at (2.5,-2.5) {\LARGE $\bm{X_3}$\\\textbf{cat.}};
+		\node[my node] (Y) at (1.25,-4.5) {\LARGE $\bm{Y}$};
 		
-		\draw[my arrow] (X1) -- (X4);
-		\draw[my arrow] (X2) -- (X3);
-		\draw[my arrow] (X4) -- (Y);
-		\draw[my arrow] (X3) -- (Y);
+		\draw[my arrow, very thick] (X1) -- (X4);
+		\draw[my arrow, very thick] (X2) -- (X3);
+		\draw[my arrow, very thick] (X4) -- (Y);
+		\draw[my arrow, very thick] (X3) -- (Y);
 		
 		% Show legend
-		\node at (1.25, -7.5) {\includegraphics[scale = 0.85]{figures/tmp_plots/legend_mixed_data.pdf}};
+		\node at (1.35, -8) {\includegraphics[scale = 0.95]{figures/tmp_plots/legend_mixed_data.pdf}};
 		
 		% Show plot
-		\node at (-9.5, -4.5) {\includegraphics[scale = 1.25]{figures/tmp_plots/plot_mixed_data.pdf}};
+		\node at (-9, -4.5) {\includegraphics[scale = 1.1]{figures/tmp_plots/plot_mixed_data.pdf}};
 	\end{tikzpicture}
 \end{document}

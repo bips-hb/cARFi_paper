@@ -18,6 +18,9 @@ reg_name <- "Sim_regr_toeplitz"
 # Plots ------------------------------------------------------------------------
 res <- readRDS(here("eval_proof_of_concept/Sim_regr_toeplitz.rds"))
 
+# Uncomment this if you want to use the results used in the paper
+#res <- readRDS(here("final_results/res_proof_of_concept.rds"))
+
 # Boxplots of CPI values per variable
 plots_cpi <- lapply(unique(res$min_node_size), function(m) {
   ggplot(res[min_node_size == m, ], aes(x = Variable, y = CPI)) +
@@ -96,8 +99,15 @@ ggplot(res_mean[min_node_size == 20, ], aes(x = Variable, y = power, col = Learn
   facet_wrap(~ Problem) +
   geom_hline(yintercept = 0.05, col = "black", linetype = "dashed") +
   scale_color_npg() +
-  scale_y_continuous(breaks = c(0, .05, .25, .5, .75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(.05, .25, .5, .75, 1), limits = c(0, 1)) +
   xlab("Effect size") + ylab("Rejection proportion") + 
-  theme_publish(base_size = 13, base_family = "serif") +
-  theme(legend.position = "top", panel.grid.major.y = element_line("lightgray"))
-ggsave(here("figures/fig_power.pdf"), width = 8, height = 4)
+  theme_publish(base_size = 16, base_family = "serif") +
+  guides(col = guide_legend(title = "Learner", nrow = 2)) +
+  theme(legend.position = "top", panel.grid.major.y = element_line("lightgray"),
+        plot.margin = ggplot2::margin(0,0,0,0), 
+        axis.title.x = element_text(margin = ggplot2::margin(0,0,0,0)),
+        legend.margin = ggplot2::margin(0,0,5,0),
+        legend.box.spacing = ggplot2::unit(0, "pt"),
+        legend.spacing.y = ggplot2::unit(0, 'pt'),
+        legend.key.size = ggplot2::unit(0, "pt")) 
+ggsave(here("figures/fig_power.pdf"), width = 6.5, height = 3.2)
