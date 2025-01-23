@@ -19,7 +19,12 @@ reg_name <- "Sim_regr_toeplitz"
 res <- readRDS(here("eval_proof_of_concept/Sim_regr_toeplitz.rds"))
 
 # Uncomment this if you want to use the results used in the paper
-#res <- readRDS(here("final_results/res_proof_of_concept.rds"))
+#res <- rbind(
+#  readRDS(here("final_results/res_proof_of_concept_1.rds")),
+#  readRDS(here("final_results/res_proof_of_concept_2.rds")),
+#  readRDS(here("final_results/res_proof_of_concept_3.rds"))
+#)
+
 
 # Boxplots of CPI values per variable
 plots_cpi <- lapply(unique(res$min_node_size), function(m) {
