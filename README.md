@@ -2,7 +2,8 @@
 
 This repository contains the code and material to reproduce the results
 of the manuscript *"Conditional Feature Importance with Generative Modeling
-using Adversarial Random Forests"*.
+using Adversarial Random Forests"* which is published in the *Proceedings of the 
+AAAI Conference on Artificial Intelligence 2025* (see [Citation](#citation)).
 
 The core method introduced in our paper, cARFi, is implemented in the R script 
 located at `cARFi.R`. This script includes the main functions and including a
@@ -67,3 +68,21 @@ following R packages:
 and is called before any analysis is run. It also automatically sets up the 
 environment by creating required folders, setting the ggplot2 theme, and 
 managing CPU usage during simulations.
+
+## Citation
+
+```bibtex
+@article{Blesch2025, 
+  title     = {Conditional Feature Importance with Generative Modeling Using 
+               Adversarial Random Forests},
+  author    = {Blesch, Kristin and Koenen, Niklas and Kapar, Jan and Golchian, 
+               Pegah and Burk, Lukas and Loecher, Markus and Wright, Marvin N.},
+  journal   = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  year      = {2025},
+  volume    = {39}, 
+  number    = {15}, 
+  pages     = {15596-15604},
+  url       = {https://ojs.aaai.org/index.php/AAAI/article/view/33712}, 
+  doi       = {10.1609/aaai.v39i15.33712}
+}
+```
